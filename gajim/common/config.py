@@ -399,6 +399,7 @@ class Config:
         'contacts': ({
             'speller_language': [opt_str, '', _('Language used for spell checking.')],
             'send_chatstate': [opt_str, 'composing_only', _('Chat state notifications that are sent to contacts. Possible values: \'all\', \'composing_only\', \'disabled\'')],
+            'send_marker': [opt_bool, False, _('If enabled, contacts are informed when you read a message.')],
         }, {}),
         'encryption': ({
             'encryption': [opt_str, '', _('The currently active encryption for that contact.')],
@@ -411,6 +412,7 @@ class Config:
             'minimize_on_autojoin': [opt_bool, True, _('If enabled, the group chat is minimized into the contact list when joining automatically.')],
             'minimize_on_close': [opt_bool, True, _('If enabled, the group chat is minimized into the contact list when closing it.')],
             'send_chatstate': [opt_str, 'composing_only', _('Chat state notifications that are sent to the group chat. Possible values: \'all\', \'composing_only\' or \'disabled\'.')],
+            'send_marker': [opt_bool, False, _('If enabled, contacts are informed when you read a message.')],
         }, {}),
         'plugins': ({
             'active': [opt_bool, False, _('If enabled, plugins will be activated on startup (this is saved when exiting Gajim). This option SHOULD NOT be used to (de)activate plugins. Use the plugin window instead.')],

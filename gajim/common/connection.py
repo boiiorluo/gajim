@@ -306,6 +306,9 @@ class CommonConnection:
                 obj.session.last_send = time.time()
                 msg_iq.setThread(obj.session.thread_id)
 
+        if obj.message:
+            msg_iq.setMarkable()
+
         self._push_stanza_message_outgoing(obj, msg_iq)
 
     def _push_stanza_message_outgoing(self, obj, msg_iq):
@@ -1635,6 +1638,7 @@ class Connection(CommonConnection, ConnectionHandlers):
         msg_iq.setID(obj.stanza_id)
         if obj.message:
             msg_iq.setOriginID(obj.stanza_id)
+            msg_iq.setMarkable()
 
         if obj.correct_id:
             msg_iq.setTag('replace', attrs={'id': obj.correct_id},

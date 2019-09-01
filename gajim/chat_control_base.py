@@ -322,6 +322,9 @@ class ChatControlBase(MessageControl, ChatCommandProcessor, CommandTools):
         self.received_history_pos = 0
         self.orig_msg = None
 
+        # For XEP-0333
+        self.last_msg_id = None
+
         self.set_emoticon_popover()
 
         # Attach speller
@@ -1032,6 +1035,9 @@ class ChatControlBase(MessageControl, ChatCommandProcessor, CommandTools):
         if restored:
             return
 
+        if message_id:
+            self.last_msg_id = message_id
+
         if kind == 'incoming':
             if not self.type_id == message_control.TYPE_GC or \
             app.config.notify_for_muc(jid) or \
@@ -1075,6 +1081,7 @@ class ChatControlBase(MessageControl, ChatCommandProcessor, CommandTools):
                     event_type.type_, self.contact.jid)
 
                 event = event_type(text, subject, self, msg_log_id,
+                    message_id=message_id,
                     show_in_roster=show_in_roster,
                     show_in_systray=show_in_systray)
                 app.events.add_event(self.account, full_jid, event)
@@ -1230,6 +1237,12 @@ class ChatControlBase(MessageControl, ChatCommandProcessor, CommandTools):
                 types=type_):
                     # There were events to remove
                     self.redraw_after_event_removed(jid)
+                    # XEP-0333 Send <displayed> tag.
+                    con.get_module('ChatMarkers').send_displayed_marker(
+                        self.contact,
+                        self.last_msg_id,
+                        self.type_id)
+                    self.last_msg_id = None
             # send chatstate inactive to the one we're leaving
             # and active to the one we visit
             if self.msg_textview.has_text():
@@ -1272,8 +1285,15 @@ class ChatControlBase(MessageControl, ChatCommandProcessor, CommandTools):
             # we are at the end
             if not app.events.remove_events(
                     self.account, jid, types=types_list):
+                con = app.connections[self.account]
                 # There were events to remove
                 self.redraw_after_event_removed(jid)
+                # XEP-0333 Send <displayed> tag.
+                con.get_module('ChatMarkers').send_displayed_marker(
+                    self.contact,
+                    self.last_msg_id,
+                    self.type_id)
+                self.last_msg_id = None
 
     def _on_scrollbar_button_release(self, scrollbar, event):
         if event.get_button()[1] != 1:
@@ -1338,6 +1358,8 @@ class ChatControlBase(MessageControl, ChatCommandProcessor, CommandTools):
         We just removed a 'printed_*' event, redraw contact in roster or
         gc_roster and titles in roster and msg_win
         """
+        if not self.parent_win: # minimized groupchat
+            return
         self.parent_win.redraw_tab(self)
         self.parent_win.show_title()
         # TODO : get the contact and check get_show_in_roster()

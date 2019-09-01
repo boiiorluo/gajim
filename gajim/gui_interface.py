@@ -285,6 +285,39 @@ class Interface:
         if ctrl and ctrl.session and len(obj.contact_list) > 1:
             ctrl.remove_session(ctrl.session)
 
+    def handle_event_read_state_sync(self, event):
+        if event.type.is_groupchat:
+            control = self.get_groupchat_control(event.account,
+                                                 event.jid.getBare())
+            if control is None:
+                log.warning('Groupchat control not found')
+                return
+
+            jid = event.jid.getBare()
+            types = ['printed_gc_msg', 'printed_marked_gc_msg']
+
+        else:
+            types = ['chat', 'pm', 'printed_chat', 'printed_pm']
+            jid = event.jid.getBare()
+            if event.is_muc_pm:
+                jid = event.jid
+
+            control = app.interface.msg_win_mgr.get_control(jid, event.account)
+
+        # Compare with control.last_msg_id.
+        events_ = app.events.get_events(event.account, jid, types)
+        if not events_:
+            log.warning('No Events')
+            return
+
+        if events_[-1].message_id != event.marker_id:
+            return
+
+        if not app.events.remove_events(event.account, jid, types=types):
+            # There were events to remove
+            if control is not None:
+                control.redraw_after_event_removed(event.jid)
+
     @staticmethod
     def handle_event_msgsent(obj):
         # ('MSGSENT', account, (jid, msg))
@@ -1117,6 +1150,7 @@ class Interface:
             'unsubscribed-presence-received': [
                 self.handle_event_unsubscribed_presence],
             'zeroconf-name-conflict': [self.handle_event_zc_name_conflict],
+            'read-state-sync': [self.handle_event_read_state_sync],
         }
 
     def register_core_handlers(self):
@@ -1392,6 +1426,12 @@ class Interface:
 ################################################################################
 ### Methods for opening new messages controls
 ################################################################################
+
+    def get_groupchat_control(self, account, room_jid):
+        control = self.minimized_controls[account].get(room_jid)
+        if control is None:
+            control = self.msg_win_mgr.get_gc_control(room_jid, account)
+        return control
 
     def show_groupchat(self, account, room_jid):
         minimized_control = self.minimized_controls[account].get(room_jid)

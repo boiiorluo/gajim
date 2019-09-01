@@ -150,6 +150,7 @@ gajim_common_features = [
     nbxmpp.NS_BYTESTREAM,
     nbxmpp.NS_FILE,
     nbxmpp.NS_MUC,
+    nbxmpp.NS_CHATMARKERS,
     nbxmpp.NS_COMMANDS,
     nbxmpp.NS_DISCO_INFO,
     nbxmpp.NS_LAST,

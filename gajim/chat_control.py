@@ -114,7 +114,7 @@ class ChatControl(ChatControlBase):
 
         # Menu for the HeaderBar
         self.control_menu = gui_menu_builder.get_singlechat_menu(
-            self.control_id, self.account, self.contact.jid)
+            self.control_id, self.account, self.contact.jid, self.TYPE_ID)
 
         # Settings menu
         self.xml.settings_menu.set_menu_model(self.control_menu)
@@ -284,6 +284,16 @@ class ChatControl(ChatControlBase):
         act.connect('change-state', self._on_send_chatstate)
         self.parent_win.window.add_action(act)
 
+        value = app.config.get_per(
+            'contacts', self.contact.jid, 'send_marker', False)
+
+        act = Gio.SimpleAction.new_stateful(
+            'send-marker-' + self.control_id,
+            None,
+            GLib.Variant.new_boolean(value))
+        act.connect('change-state', self._on_send_marker)
+        self.parent_win.window.add_action(act)
+
     def update_actions(self):
         win = self.parent_win.window
         online = app.account_is_connected(self.account)
@@ -397,6 +407,11 @@ class ChatControl(ChatControlBase):
         action.set_state(param)
         app.config.set_per('contacts', self.contact.jid,
                            'send_chatstate', param.get_string())
+
+    def _on_send_marker(self, action, param):
+        action.set_state(param)
+        app.config.set_per('contacts', self.contact.jid,
+                           'send_marker', param.get_boolean())
 
     def subscribe_events(self):
         """
