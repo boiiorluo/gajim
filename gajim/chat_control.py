@@ -233,6 +233,8 @@ class ChatControl(ChatControlBase):
         app.ged.register_event_handler(
             'receipt-received',
             ged.GUI1, self._receipt_received)
+        app.ged.register_event_handler('displayed-received',
+                                       ged.GUI1, self._displayed_received)
         app.ged.register_event_handler('message-error',
                                        ged.GUI1, self._on_message_error)
         app.ged.register_event_handler('zeroconf-error', ged.GUI1,
@@ -970,6 +972,10 @@ class ChatControl(ChatControlBase):
     @event_filter(['account', 'jid'])
     def _receipt_received(self, event):
         self.conv_textview.show_receipt(event.receipt_id)
+
+    @event_filter(['account', 'jid'])
+    def _displayed_received(self, event):
+        self.conv_textview.show_displayed(event.marker_id)
 
     def get_tab_label(self):
         unread = ''

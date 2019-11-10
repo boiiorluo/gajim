@@ -71,10 +71,14 @@ class ChatMarkers(BaseModule):
                        properties.jid,
                        properties.marker.id)
 
+        jid = properties.jid
+        if not properties.is_muc_pm and not properties.type.is_groupchat:
+            jid = properties.jid.getBare()
+
         app.nec.push_outgoing_event(
             NetworkEvent(name,
                          account=self._account,
-                         jid=properties.jid,
+                         jid=jid,
                          properties=properties,
                          type=properties.type,
                          is_muc_pm=properties.is_muc_pm,

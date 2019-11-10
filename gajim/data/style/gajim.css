@@ -248,6 +248,7 @@ button.flat.link { padding: 0; border: 0; }
 
 /*Receipts*/
 .receipt-received-color { color: rgb(75, 181, 67) }
+.displayed-received-color { color: rgb(106, 0, 242) }
 
 /*Dataforms*/
 .field-fixed { font-size: 16px; font-weight: bold; padding-top:5px;}

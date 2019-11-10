@@ -407,6 +407,12 @@ class ConversationTextview(GObject.GObject):
             return
         line.set_receipt()
 
+    def show_displayed(self, id_):
+        line = self._get_message_line(id_)
+        if line is None:
+            return
+        line.set_displayed()
+
     def show_error(self, id_, error):
         line = self._get_message_line(id_)
         if line is None:
@@ -1313,15 +1319,26 @@ class MessageLine:
         self.timestamp = timestamp
         self.start_mark = start_mark
         self._has_receipt = False
+        self._has_displayed = False
         self._message_icons = message_icons
 
     @property
     def has_receipt(self):
         return self._has_receipt
 
+    @property
+    def has_displayed(self):
+        return self._has_displayed
+
     def set_receipt(self):
         self._has_receipt = True
+        if self._has_displayed:
+            return
         self._message_icons.set_receipt_icon_visible(True)
+
+    def set_displayed(self):
+        self._has_displayed = True
+        self._message_icons.set_displayed_icon_visible(True)
 
     def set_correction(self, tooltip):
         self._message_icons.set_correction_icon_visible(True)
@@ -1341,12 +1358,12 @@ class MessageIcons(Gtk.Box):
             'document-edit-symbolic', Gtk.IconSize.MENU)
         self._correction_image.set_no_show_all(True)
 
-        self._receipt_image = Gtk.Image.new_from_icon_name(
+        self._marker_image = Gtk.Image.new_from_icon_name(
             'emblem-ok-symbolic', Gtk.IconSize.MENU)
-        self._receipt_image.get_style_context().add_class(
+        self._marker_image.get_style_context().add_class(
             'receipt-received-color')
-        self._receipt_image.set_tooltip_text(_('Received'))
-        self._receipt_image.set_no_show_all(True)
+        self._marker_image.set_tooltip_text(_('Received'))
+        self._marker_image.set_no_show_all(True)
 
         self._error_image = Gtk.Image.new_from_icon_name(
             'dialog-warning-symbolic', Gtk.IconSize.MENU)
@@ -1354,14 +1371,22 @@ class MessageIcons(Gtk.Box):
         self._error_image.set_no_show_all(True)
 
         self.add(self._correction_image)
-        self.add(self._receipt_image)
+        self.add(self._marker_image)
         self.add(self._error_image)
         self.show_all()
 
     def set_receipt_icon_visible(self, visible):
         if not app.config.get('positive_184_ack'):
             return
-        self._receipt_image.set_visible(visible)
+        self._marker_image.set_visible(visible)
+
+    def set_displayed_icon_visible(self, visible):
+        self._marker_image.set_visible(visible)
+        self._marker_image.get_style_context().remove_class(
+            'receipt-received-color')
+        self._marker_image.get_style_context().add_class(
+            'displayed-received-color')
+        self._marker_image.set_tooltip_text(_('Displayed'))
 
     def set_correction_icon_visible(self, visible):
         self._correction_image.set_visible(visible)
